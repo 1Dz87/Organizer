@@ -49,6 +49,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "orgUser", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     List<Authority> authorities;
 
+    @OneToMany
+    FriendGroup friendGroup;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.authorities;

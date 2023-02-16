@@ -9,6 +9,7 @@ import by.itstep.organizaer.model.entity.Account;
 import by.itstep.organizaer.model.entity.Transaction;
 import by.itstep.organizaer.model.entity.User;
 import by.itstep.organizaer.repository.AccountRepository;
+import by.itstep.organizaer.repository.FriendRepository;
 import by.itstep.organizaer.repository.TransactionRepository;
 import by.itstep.organizaer.utils.SecurityUtil;
 import lombok.AccessLevel;
@@ -22,20 +23,18 @@ import javax.naming.AuthenticationException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class AnalyticsService {
 
-    TransactionRepository txRepository;
-
     EntityManager entityManager;
     AccountRepository accountRepository;
+
+    FriendRepository friendRepository;
     ProjectConfiguration projectConfiguration;
 
 
@@ -44,11 +43,23 @@ public class AnalyticsService {
         String query = buildingQuery(requestDto);
         Query entityQuery = entityManager.createNativeQuery(query, Transaction.class);
         List<Transaction> transactions = entityQuery.getResultList();
-        Map<Long, List<Transaction>> friendTxMap = new HashMap<>();
-        List<AbstractAnalyticsResponseDto> resultList = new ArrayList<>();
+        if (ObjectUtils.isEmpty(requestDto.getFriendsIdList())) {
+            return List.of(buildingAnaliticsResponseDto(requestDto, transactions, null));
+        }
+
+        Map<Long, List<Transaction>> friendTxMap = transactions
+                .stream()
+                .collect(Collectors.toMap(
+                        tx -> tx.getFriend().getId(), // Func1 - функция извлечения ключа
+                        tx1 -> new ArrayList<Transaction>(Collections.singleton(tx1)), // Func2 - функция извлечения значения
+                        (list1, list2) -> { // Func3 - функция мержа значений по одному ключу
+                            list1.addAll(list2);
+                            return list1;
+                        }));
+
+/*        Map<Long, List<Transaction>> friendTxMap = new HashMap<>();
         for (Transaction transaction : transactions) {
             Long friendId = transaction.getFriend().getId();
-            
             if (friendTxMap.containsKey(friendId)) {
                 List<Transaction> tmp = friendTxMap.get(friendId);
                 tmp.add(transaction);
@@ -58,11 +69,13 @@ public class AnalyticsService {
                 txList.add(transaction);
                 friendTxMap.put(friendId, txList);
             }
+        }*/
+
+        List<AbstractAnalyticsResponseDto> resultList = new ArrayList<>();
+        for (Map.Entry<Long, List<Transaction>> entry : friendTxMap.entrySet()) {
+            resultList.add(buildingAnaliticsResponseDto(requestDto, entry.getValue(), entry.getKey()));
         }
-        for (List<Transaction> listTx : friendTxMap.values()) {
-            resultList.add(buildingAnaliticsResponseDto(requestDto, listTx));
-        }
-       return resultList;
+        return resultList;
     }
 
     private String buildingQuery(AnalyticsTxRequestDto requestDto) {
@@ -98,14 +111,13 @@ public class AnalyticsService {
         return query.concat(";");
     }
 
-    private AbstractAnalyticsResponseDto buildingAnaliticsResponseDto(AnalyticsTxRequestDto requestDto, List<Transaction> transactions) throws AuthenticationException {
-        User user = SecurityUtil.getCurrentUser().orElseThrow(() -> new AuthenticationException());
+    private AbstractAnalyticsResponseDto buildingAnaliticsResponseDto(AnalyticsTxRequestDto requestDto, List<Transaction> transactions, Long friendId) throws AuthenticationException {
+        User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
 
         Account account = accountRepository.findByIdAndUser(requestDto.getAccountId(), user)
                 .orElseThrow(() -> new AccountNotFoundException(requestDto.getAccountId()));
-
         if (ObjectUtils.isEmpty(transactions)) {
-            return getEmptyResponseDto(requestDto, account);
+            return getEmptyResponseDto(requestDto, account, friendId);
         }
         if (requestDto.getType() != ArchiveStatsType.ALL) {
             return getSingleTypeResponseDto(requestDto, account, transactions);
@@ -124,7 +136,8 @@ public class AnalyticsService {
                         .filter((tx) -> tx.getSourceAccount().getId().equals(account.getId()))
                         .map((tx) -> tx.getAmount())
                         .reduce(Float::sum).orElse(0f))
-                .accountName(account.getName());
+                .accountName(account.getName())
+                .friend(buildFriendInfo(transactions));
         buildDate(requestDto, builder);
         return builder.build();
     }
@@ -134,17 +147,37 @@ public class AnalyticsService {
                 .accountName(account.getName())
                 .ammount(transactions.stream()
                         .map((tx) -> tx.getAmount())
-                        .reduce(Float::sum).orElse(0f));
+                        .reduce(Float::sum).orElse(0f))
+                .friend(buildFriendInfo(transactions));
         buildDate(requestDto, builder);
         return builder.build();
     }
 
-    private EmptyAnalyticsResponseDto getEmptyResponseDto(AnalyticsTxRequestDto requestDto, Account account) {
+    private EmptyAnalyticsResponseDto getEmptyResponseDto(AnalyticsTxRequestDto requestDto, Account account, Long friendId) {
         EmptyAnalyticsResponseDto.EmptyAnalyticsResponseDtoBuilder builder = EmptyAnalyticsResponseDto.builder();
         builder.accountName(account.getName());
         builder.message("данные не найдены");
+        if (ObjectUtils.isNotEmpty(friendId)) {
+            builder.friend(friendRepository.findById(friendId)
+                    .map(friend -> FriendShortInfoDto.builder().id(friendId).name(friend.getName()).build())
+                    .orElse(null));
+        }
         buildDate(requestDto, builder);
         return builder.build();
+    }
+
+    private FriendShortInfoDto buildFriendInfo(List<Transaction> transactions) {
+        return transactions
+                .stream()
+                .filter(tx -> Objects.nonNull(tx.getFriend()))
+                .findFirst()
+                .map(Transaction::getFriend)
+                .map(friend -> FriendShortInfoDto
+                        .builder()
+                        .id(friend.getId())
+                        .name(friend.getName())
+                        .build())
+                .orElse(null);
     }
 
     private <T extends AbstractAnalyticsResponseDto.AbstractAnalyticsResponseDtoBuilder> void buildDate(AnalyticsTxRequestDto requestDto, T builder) {

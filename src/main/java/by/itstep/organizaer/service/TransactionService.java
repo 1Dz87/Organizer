@@ -95,21 +95,23 @@ public class TransactionService {
 
     private Friend getFriend(Account targetAccount) {
         return Optional.ofNullable(targetAccount.getUser())
-                .flatMap(user -> {
+                .map(user -> {
                     if (SecurityUtil.getCurrentUser()
                             .map(User::getId)
                             .stream()
                             .anyMatch(id -> !id.equals(user.getId()))) {
-                        return friendRepository.findByUuidAndUser(user.getUuid(), SecurityUtil.getCurrentUser().get());
+                        return friendRepository.findByUuidAndUser(user.getUuid(), SecurityUtil.getCurrentUser().get())
+                                .orElseGet(() -> SecurityUtil.getCurrentUser()
+                                        .map(self -> friendRepository.save(Friend.builder()
+                                                .user(self)
+                                                .contacts(user.getContacts())
+                                                .birthday(user.getBirthDay())
+                                                .uuid(user.getUuid())
+                                                .name(user.getName())
+                                                .build()))
+                                        .orElse(null));
                     }
-                    return SecurityUtil.getCurrentUser()
-                            .map(self -> friendRepository.save(Friend.builder()
-                                            .user(self)
-                                            .contacts(user.getContacts())
-                                            .birthday(user.getBirthDay())
-                                            .uuid(user.getUuid())
-                                            .name(user.getName())
-                                    .build()));
+                    return null;
                 })
                 .orElse(null);
 

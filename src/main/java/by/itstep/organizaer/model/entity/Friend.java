@@ -34,4 +34,7 @@ public class Friend {
 
     @ManyToOne
     User user;
+
+    @ManyToOne
+    FriendGroup friendGroup;
 }
