@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -49,8 +50,16 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "orgUser", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     List<Authority> authorities;
 
-    @OneToMany
-    FriendGroup friendGroup;
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    List<FriendGroup> friendGroup;
+
+    public void addFriendGroup(FriendGroup friendGroup){
+        if(this.friendGroup == null){
+            this.friendGroup = new ArrayList<>();
+        }
+        this.friendGroup.add(friendGroup);
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

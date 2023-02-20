@@ -2,6 +2,7 @@ package by.itstep.organizaer.web;
 
 import by.itstep.organizaer.model.dto.FriendDto;
 import by.itstep.organizaer.model.dto.UserDto;
+import by.itstep.organizaer.service.FriendGroupService;
 import by.itstep.organizaer.service.FriendService;
 import by.itstep.organizaer.service.UserService;
 import lombok.AccessLevel;
@@ -21,6 +22,7 @@ import java.util.List;
 public class UserController {
 
     UserService userService;
+    FriendGroupService friendGroupService;
 
     FriendService friendService;
 
@@ -28,6 +30,14 @@ public class UserController {
     public ResponseEntity<FriendDto> createFriend(@RequestBody @Valid FriendDto friendDto){
         return ResponseEntity.ok(friendService.createFriend(friendDto));
 
+    }
+    @PostMapping("/createGroup")
+    public ResponseEntity<Long> createFriendGroup(@RequestParam String name){
+        return ResponseEntity.ok(friendGroupService.createFriendGroup(name));
+    }
+    @PutMapping("/putFriendsToGroup")
+    public ResponseEntity<String> putFriendsToGroup(@RequestBody List<Long> friendIds, @RequestParam Long groupId){
+        return ResponseEntity.ok(friendGroupService.putFriendsToGroup(friendIds,groupId));
     }
 
 }

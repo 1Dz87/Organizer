@@ -36,5 +36,6 @@ public class Friend {
     User user;
 
     @ManyToOne
+    @JoinColumn(name = "friend_group")
     FriendGroup friendGroup;
 }

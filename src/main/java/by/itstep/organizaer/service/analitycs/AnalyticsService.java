@@ -2,7 +2,6 @@ package by.itstep.organizaer.service.analitycs;
 
 import by.itstep.organizaer.config.ProjectConfiguration;
 import by.itstep.organizaer.exceptions.AccountNotFoundException;
-import by.itstep.organizaer.exceptions.UserNotFoundException;
 import by.itstep.organizaer.model.dto.analytics.*;
 import by.itstep.organizaer.model.dto.enums.ArchiveStatsType;
 import by.itstep.organizaer.model.entity.Account;
@@ -10,7 +9,6 @@ import by.itstep.organizaer.model.entity.Transaction;
 import by.itstep.organizaer.model.entity.User;
 import by.itstep.organizaer.repository.AccountRepository;
 import by.itstep.organizaer.repository.FriendRepository;
-import by.itstep.organizaer.repository.TransactionRepository;
 import by.itstep.organizaer.utils.SecurityUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
