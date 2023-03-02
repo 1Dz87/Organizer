@@ -10,3 +10,5 @@ project:
     sheduling:
       morning-cron: 0 30 10 * * *
       evening-cron: 0 49 19 * * *
+    client:
+      weather-url: https://goweather.herokuapp.com/weather/

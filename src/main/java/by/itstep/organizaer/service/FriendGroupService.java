@@ -38,6 +38,7 @@ public class FriendGroupService {
         return group.getId();
     }
 
+    @Transactional
     public String putFriendsToGroup(List<Long> friendIds, Long groupId) {
         try {
             FriendGroup group = friendGroupRepository.findById(groupId)

@@ -9,10 +9,8 @@ import by.itstep.organizaer.model.dto.SingleArchiveStatsDto;
 import by.itstep.organizaer.model.dto.enums.ArchiveStatsType;
 import by.itstep.organizaer.model.entity.Account;
 import by.itstep.organizaer.model.entity.Archive;
-import by.itstep.organizaer.model.entity.Transaction;
 import by.itstep.organizaer.repository.AccountRepository;
 import by.itstep.organizaer.repository.ArchiveRepository;
-import by.itstep.organizaer.repository.TransactionRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,17 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Collection;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ArchivationService {
-
-    TransactionRepository transactionRepository;
 
     AccountRepository accountRepository;
 
@@ -40,58 +34,32 @@ public class ArchivationService {
 
     ProjectConfiguration projectConfiguration;
 
+    AccountArchivationProcessor accountArchivationProcessor;
+
 
     @Async
     @Transactional
     @Scheduled(cron = "${project.business.sheduling.evening-cron}")
     public void archiveEvening() {
-        archivate();
+        doArchive();
     }
 
-    @Async
-    @Transactional
     @Scheduled(cron = "${project.business.sheduling.morning-cron}")
-    public void archivate() {
-        System.out.println("" + LocalTime.now() + " ПРОЦЕДУРА АРХИВИРОВАНИЯ ЗАПУЩЕНА");
+    @Async
+    public void doArchive() {
         LocalDate before = LocalDate.now().minusDays(projectConfiguration.getBusiness().getArchivationPeriodDays());
         LocalDate dateFrom = archiveRepository
                 .findLast()
                 .map(Archive::getTil)
                 .orElse(null);
-        archiveRepository.deleteAll();
-        transactionRepository.deleteAll(
-                accountRepository.findAll()
-                        .stream()
-                        .collect(Collectors.toMap(Function.identity(), account -> transactionRepository.findByAccount(account, before)))
-                        .entrySet()
-                        .stream()
-                        .map(entry -> {
-                            Float spendAmount = entry.getValue()
-                                    .stream()
-                                    .filter(tx -> tx.getSourceAccount() != null)
-                                    .filter(tx -> tx.getSourceAccount().getId().equals(entry.getKey().getId()))
-                                    .map(Transaction::getAmount)
-                                    .reduce(Float::sum)
-                                    .orElse(0F);
-                            Float incomeAmount = entry.getValue()
-                                    .stream()
-                                    .filter(tx -> tx.getTargetAccount().getId().equals(entry.getKey().getId()))
-                                    .map(Transaction::getAmount)
-                                    .reduce(Float::sum)
-                                    .orElse(0F);
-                            archiveRepository.save(Archive.builder()
-                                    .account(entry.getKey())
-                                    .spend(spendAmount)
-                                    .income(incomeAmount)
-                                    .til(before)
-                                    .dateFrom(dateFrom)
-                                    .build());
-                            return entry.getValue();
-                        })
-                        .flatMap(Collection::stream)
-                        .collect(Collectors.toList()));
-        System.out.println("" + LocalTime.now() + " ПРОЦЕДУРА АРХИВИРОВАНИЯ ЗАВЕРШЕНА");
+        Long lastAccId = accountRepository.findCurrentSeq();
+        List<Long> listId = new ArrayList<>();
+        for (long i = 1; i <= lastAccId; i++) {
+            listId.addAll(accountArchivationProcessor.processAccountArchive(i, before, dateFrom));
+        }
+        accountArchivationProcessor.delete(listId);
     }
+
 
     public ArchiveStatsDto getStats(Long id, ArchiveStatsType type) {
         Account account = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException(id));

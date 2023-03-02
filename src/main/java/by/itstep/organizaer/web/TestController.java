@@ -1,5 +1,7 @@
 package by.itstep.organizaer.web;
 
+import by.itstep.organizaer.client.WeatherClient;
+import by.itstep.organizaer.model.dto.weather.Forecast;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.TemplateLoader;
@@ -7,12 +9,13 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -22,7 +25,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/test")
+@RequiredArgsConstructor
 public class TestController {
+
+    private final WeatherClient client;
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/hello")
@@ -44,5 +50,18 @@ public class TestController {
         Writer w = new StringWriter();
         temp.process(root, w);
         return w.toString();
+    }
+
+    @GetMapping("/echo")
+    public String echo(@RequestParam String string, @RequestHeader(HttpHeaders.USER_AGENT) String userAgent) {
+        if (StringUtils.containsAnyIgnoreCase(userAgent, "PostmanRuntime")) {
+            return "Postman is not supported";
+        }
+        return string;
+    }
+
+    @GetMapping("/forecast")
+    public ResponseEntity<Forecast> forecast(@RequestParam String city) {
+        return ResponseEntity.ok(client.getForecat(city));
     }
 }

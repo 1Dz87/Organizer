@@ -15,4 +15,7 @@ public interface ArchiveRepository extends JpaRepository<Archive, Long> {
 
     @Query(value = "select * from archive order by id desc limit 1", nativeQuery = true)
     Optional<Archive> findLast();
+
+    @Query(value = "delete from archive where account_id = :account", nativeQuery = true)
+    void deleteByAccId(Long account);
 }

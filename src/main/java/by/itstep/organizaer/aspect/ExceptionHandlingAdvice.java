@@ -43,4 +43,14 @@ public class ExceptionHandlingAdvice {
                 .message(String.format("Запрос не прошел валидацию. Поле %s имеет не валидное значение %s", err.getField(), err.getRejectedValue()))
                 .build();
     }
+
+    @ExceptionHandler(value = InteractionException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public CommonException handleInteractionException(InteractionException ex) {
+        return CommonException
+                .builder()
+                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .message(ex.getMessage())
+                .build();
+    }
 }
