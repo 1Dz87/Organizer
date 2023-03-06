@@ -51,7 +51,7 @@ public class SecurityConfig {
                 .authenticationEntryPoint(authEntryPoint)
                 .and()
                 .authorizeHttpRequests()
-                .antMatchers("/auth/**", "/test/**").permitAll()
+                .antMatchers("/auth/**", "/test/**", "/swagger-ui/**", "/swagger-ui**", "/api-docs/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)

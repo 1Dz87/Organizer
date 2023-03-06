@@ -8,8 +8,10 @@ import by.itstep.organizaer.model.entity.User;
 import by.itstep.organizaer.model.mapping.UserMapper;
 import by.itstep.organizaer.security.JwtUtil;
 import by.itstep.organizaer.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,9 +29,11 @@ import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Tag(name = "Authorization", description = "API авторизации")
 public class AuthorizationController {
 
     UserService userService;
@@ -77,6 +81,7 @@ public class AuthorizationController {
     // http://localhost:8080/auth/login
     @PostMapping("/login")
     public ResponseEntity<UserDto> login(@RequestBody LoginRequest request) {
+        log.debug("Запрос входа с логином: {}", request.getLogin());
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(request.getLogin(), request.getPassword()));
 

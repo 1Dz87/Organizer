@@ -6,8 +6,11 @@ spring:
     username: postgres
     password: root
   jpa:
+    properties:
+      hibernate:
+        show_sql: true # только для отладки
+        format_sql: true # только для отладки
     database: POSTGRESQL
-    show-sql: true
     hibernate:
       ddl-auto: validate
       dialect: org.hibernate.dialect.PostgreSQL10Dialect
@@ -18,3 +21,16 @@ spring:
     password: root
     driverClassName: org.postgresql.Driver
     defaultSchema: organizer
+
+logging:
+  level:
+    by:
+      itstep:
+        organizaer: INFO # для отладки DEBUG
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html

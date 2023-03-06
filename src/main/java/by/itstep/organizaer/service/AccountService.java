@@ -9,6 +9,7 @@ import by.itstep.organizaer.model.entity.User;
 import by.itstep.organizaer.model.mapping.AccountMapper;
 import by.itstep.organizaer.repository.AccountRepository;
 import by.itstep.organizaer.repository.UserRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@SecurityRequirement(name = "Organizer security")
 public class AccountService {
 
     AccountRepository accountRepository;
