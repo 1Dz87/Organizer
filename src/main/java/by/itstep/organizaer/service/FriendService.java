@@ -39,7 +39,7 @@ public class FriendService {
         if(userOptional.isPresent()){
             friend.setUuid(userOptional.get().getUuid());
         }
-        User currentUser = SecurityUtil.getCurrentUser().orElseThrow(() -> new AuthenticationServiceException("Ошибка авторизации"));
+        User currentUser = SecurityUtil.getCurrentUser().orElseThrow(() -> new UserNotFoundException("Ошибка авторизации"));
         friend.setUser(currentUser);
         friendRepository.save(friend);
         return friendMapper.toDto(friend);
