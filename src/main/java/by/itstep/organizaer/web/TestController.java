@@ -2,6 +2,7 @@ package by.itstep.organizaer.web;
 
 import by.itstep.organizaer.client.WeatherClient;
 import by.itstep.organizaer.model.dto.weather.Forecast;
+import by.itstep.organizaer.service.EmailService;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.TemplateLoader;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.time.LocalDateTime;
@@ -29,6 +31,14 @@ import java.util.Map;
 public class TestController {
 
     private final WeatherClient client;
+
+    private final EmailService emailService;
+
+    @GetMapping("/testEmail")
+    public String sendTestMail() throws MessagingException {
+        emailService.helloMail();
+        return "Hello";
+    }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/hello")

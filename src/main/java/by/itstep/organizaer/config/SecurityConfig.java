@@ -3,6 +3,7 @@ package by.itstep.organizaer.config;
 import by.itstep.organizaer.security.AccessDeniedAuthEntryPoint;
 import by.itstep.organizaer.security.AuthEntryPoint;
 import by.itstep.organizaer.security.AuthFilter;
+import by.itstep.organizaer.service.CustomAuthenticationManager;
 import by.itstep.organizaer.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
 
-    UserDetailsService userService;
+    UserService userService;
 
     AuthEntryPoint authEntryPoint;
 
@@ -50,6 +51,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(accessDeniedAuthEntryPoint)
                 .authenticationEntryPoint(authEntryPoint)
                 .and()
+                //.authenticationManager(new CustomAuthenticationManager(userService))
                 .authorizeHttpRequests()
                 .antMatchers("/auth/**", "/test/**", "/swagger-ui/**", "/swagger-ui**", "/api-docs/**").permitAll()
                 .anyRequest().authenticated()
@@ -57,7 +59,6 @@ public class SecurityConfig {
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
-
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http, @Qualifier("major") PasswordEncoder encoder) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)

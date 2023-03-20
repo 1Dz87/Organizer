@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Добро пожаловать в Органайзер</title>
+        <style>
+            .main_block {
+                margin-left: auto;
+                margin-right: auto;
+                text-align: center;
+            }
+            .text-1 {
+                font-size: 1rem;
+                font-weight: 300;
+                padding-left: 150;
+                padding-right: 150;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main_block">
+            <h3 style="color:#668cff">Уважаемый, <span th:text="${username}"></span></h3>
+            <p>
+                <span class="text-1">
+                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+                </span>
+            </p>
+        </div>
+        
+
+    </body>
+</html>

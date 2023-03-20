@@ -1,5 +1,6 @@
 package by.itstep.organizaer.service;
 
+import by.itstep.organizaer.exceptions.UserNotFoundException;
 import by.itstep.organizaer.model.entity.Contacts;
 import by.itstep.organizaer.model.entity.User;
 import by.itstep.organizaer.repository.UserRepository;
@@ -21,7 +22,7 @@ public class ContactService {
                     return repository.save(user);
                 })
                 .map(User::getContacts)
-                .orElse(null);
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     public Contacts createFriendContact(Long friendId, Contacts contacts) {

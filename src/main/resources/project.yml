@@ -12,3 +12,15 @@ project:
       evening-cron: 0 49 19 * * *
     client:
       weather-url: https://goweather.herokuapp.com/weather/
+
+  mail:
+    username: user # to be defined
+    password: password # to be defined
+    smtp:
+      auth: true
+      host: localhost
+      port: 25
+      starttls:
+        enable: true
+      ssl:
+        trust: localhost

@@ -24,7 +24,7 @@ public class FriendDto {
     @NotBlank
     String name;
 
-    @Schema(title = "День рождения", description = "День рождения", format = "date")
+    @Schema(title = "День рождения", description = "День рождения", format = "date", pattern = "dd.MM.yyyy")
     LocalDate birthday;
 
     @NotNull
